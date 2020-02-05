@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { ApolloLink } from 'apollo-link';
 import { setContext } from 'apollo-link-context';
 import { RetryLink } from 'apollo-link-retry';
+import { SyncHook } from 'tapable';
 
 import { Util } from '@magento/peregrine';
 import { Adapter } from '@magento/venia-drivers';
@@ -10,6 +11,7 @@ import store from './store';
 import app from '@magento/peregrine/lib/store/actions/app';
 import App, { AppContextProvider } from '@magento/venia-ui/lib/components/App';
 
+import { registerTapableHooks } from './extensions';
 import { registerSW } from './registerSW';
 import './index.css';
 
@@ -56,12 +58,30 @@ ReactDOM.render(
 
 registerSW();
 
+const onlineSyncHook = new SyncHook(['isOnline']);
+
+onlineSyncHook.tap('venia-concept', isOnline => {
+    const dispatcher = isOnline ? app.setOnline : app.setOffline;
+    store.dispatch(dispatcher());
+});
+
 window.addEventListener('online', () => {
-    store.dispatch(app.setOnline());
+    onlineSyncHook.call(true);
 });
+
 window.addEventListener('offline', () => {
-    store.dispatch(app.setOffline());
+    onlineSyncHook.call(false);
 });
+
+registerTapableHooks({
+    onlineSyncHook
+})
+    .then(() => {
+        console.log('All extensions have been registered');
+    })
+    .catch(() => {
+        console.warn('Unable to register 1 or more extensions');
+    });
 
 if (module.hot) {
     // When any of the dependencies to this entry file change we should hot reload.
