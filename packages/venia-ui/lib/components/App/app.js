@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { array, func, shape, string } from 'prop-types';
 
 import { useToasts } from '@magento/peregrine';
@@ -14,7 +14,7 @@ import { registerMessageHandler } from '../../util/swUtils';
 import { HTML_UPDATE_AVAILABLE } from '../../constants/swMessageTypes';
 import ToastContainer from '../ToastContainer';
 import Icon from '../Icon';
-import { GenerateAdsSyncBailHook } from '../../tapableHooks';
+import useAds from './useAds';
 
 import {
     AlertCircle as AlertCircleIcon,
@@ -33,7 +33,7 @@ const ERROR_MESSAGE = 'Sorry! An unexpected error occurred.';
 const App = props => {
     const { markErrorHandled, renderError, unhandledErrors } = props;
 
-    const [GeneratedAd, setGeneratedAd] = useState(<div />);
+    const [GeneratedAd] = useAds();
 
     const [, { addToast }] = useToasts();
 
@@ -118,14 +118,6 @@ const App = props => {
         );
         return unregisterHandler;
     }, [setHTMLUpdateAvailable]);
-
-    useEffect(() => {
-        setTimeout(() => {
-            GenerateAdsSyncBailHook.call(setGeneratedAd, {
-                interest: 'Football'
-            });
-        }, 1000);
-    }, []);
 
     if (renderError) {
         return (
