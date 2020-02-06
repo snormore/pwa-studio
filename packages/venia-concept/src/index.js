@@ -58,30 +58,24 @@ ReactDOM.render(
 
 registerSW();
 
-const onlineSyncHook = new SyncHook(['isOnline']);
+const networkActivityParallelHook = new SyncHook(['isOnline']);
 
-onlineSyncHook.tap('venia-concept', isOnline => {
+networkActivityParallelHook.tap('venia-concept', isOnline => {
     const dispatcher = isOnline ? app.setOnline : app.setOffline;
     store.dispatch(dispatcher());
 });
 
 window.addEventListener('online', () => {
-    onlineSyncHook.call(true);
+    networkActivityParallelHook.call(true);
 });
 
 window.addEventListener('offline', () => {
-    onlineSyncHook.call(false);
+    networkActivityParallelHook.call(false);
 });
 
 registerTapableHooks({
-    onlineSyncHook
-})
-    .then(() => {
-        console.log('All extensions have been registered');
-    })
-    .catch(() => {
-        console.warn('Unable to register 1 or more extensions');
-    });
+    networkActivityParallelHook
+});
 
 if (module.hot) {
     // When any of the dependencies to this entry file change we should hot reload.

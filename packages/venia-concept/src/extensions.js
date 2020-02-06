@@ -1,13 +1,13 @@
-const extensions = ['online-offline-extension'];
+/**
+ * Assume these extensions are provided as separate npm modules
+ */
+const extensions = ['./sample-extensions/venia-sample-network-activity-logger'];
 
 export const registerTapableHooks = tapableHooks => {
-    return Promise.all(
-        extensions.map(extension => {
-            return import(extension).then(registerHooks => {
-                registerHooks(tapableHooks);
-            });
-        })
-    );
+    extensions.map(extension => {
+        const { default: registerTapableHooks } = require(`${extension}`);
+        registerTapableHooks(tapableHooks);
+    });
 };
 
 export default extensions;
