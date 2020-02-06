@@ -59,22 +59,37 @@ ReactDOM.render(
 
 registerSW();
 
+/**
+ * Creating a sync hook
+ */
 const NetworkActivitySyncHook = new SyncHook(['isOnline']);
 
+/**
+ * Registering the hook for extensions to use
+ */
 registerTapableHooks({
     ...tapableHooks,
     NetworkActivitySyncHook
 });
 
+/**
+ * Tapping into the hook to dispatch online and online changes
+ */
 NetworkActivitySyncHook.tap('venia-concept', isOnline => {
     const dispatcher = isOnline ? app.setOnline : app.setOffline;
     store.dispatch(dispatcher());
 });
 
+/**
+ * Calling the hook when online
+ */
 window.addEventListener('online', () => {
     NetworkActivitySyncHook.call(true);
 });
 
+/**
+ * Calling the hook when offline
+ */
 window.addEventListener('offline', () => {
     NetworkActivitySyncHook.call(false);
 });
