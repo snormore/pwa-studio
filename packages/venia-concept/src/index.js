@@ -59,24 +59,24 @@ ReactDOM.render(
 
 registerSW();
 
-const networkActivitySyncHook = new SyncHook(['isOnline']);
+const NetworkActivitySyncHook = new SyncHook(['isOnline']);
 
-networkActivitySyncHook.tap('venia-concept', isOnline => {
+NetworkActivitySyncHook.tap('venia-concept', isOnline => {
     const dispatcher = isOnline ? app.setOnline : app.setOffline;
     store.dispatch(dispatcher());
 });
 
 window.addEventListener('online', () => {
-    networkActivitySyncHook.call(true);
+    NetworkActivitySyncHook.call(true);
 });
 
 window.addEventListener('offline', () => {
-    networkActivitySyncHook.call(false);
+    NetworkActivitySyncHook.call(false);
 });
 
 registerTapableHooks({
     ...tapableHooks,
-    networkActivitySyncHook
+    NetworkActivitySyncHook
 });
 
 if (module.hot) {

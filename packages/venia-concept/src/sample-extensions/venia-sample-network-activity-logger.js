@@ -12,9 +12,9 @@ function networkLogger(isOnline) {
 }
 
 export default tapableHooks => {
-    const { networkActivitySyncHook } = tapableHooks;
+    const { NetworkActivitySyncHook } = tapableHooks;
 
-    networkActivitySyncHook.tap(
+    NetworkActivitySyncHook.tap(
         'venia-sample-network-activity-logger',
         networkLogger
     );
