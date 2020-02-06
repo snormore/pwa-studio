@@ -61,6 +61,11 @@ registerSW();
 
 const NetworkActivitySyncHook = new SyncHook(['isOnline']);
 
+registerTapableHooks({
+    ...tapableHooks,
+    NetworkActivitySyncHook
+});
+
 NetworkActivitySyncHook.tap('venia-concept', isOnline => {
     const dispatcher = isOnline ? app.setOnline : app.setOffline;
     store.dispatch(dispatcher());
@@ -72,11 +77,6 @@ window.addEventListener('online', () => {
 
 window.addEventListener('offline', () => {
     NetworkActivitySyncHook.call(false);
-});
-
-registerTapableHooks({
-    ...tapableHooks,
-    NetworkActivitySyncHook
 });
 
 if (module.hot) {
