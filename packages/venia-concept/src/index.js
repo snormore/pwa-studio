@@ -10,6 +10,7 @@ import { Adapter } from '@magento/venia-drivers';
 import store from './store';
 import app from '@magento/peregrine/lib/store/actions/app';
 import App, { AppContextProvider } from '@magento/venia-ui/lib/components/App';
+import { tapableHooks } from '@magento/venia-ui';
 
 import { registerTapableHooks } from './extensions';
 import { registerSW } from './registerSW';
@@ -58,23 +59,24 @@ ReactDOM.render(
 
 registerSW();
 
-const networkActivityParallelHook = new SyncHook(['isOnline']);
+const networkActivitySyncHook = new SyncHook(['isOnline']);
 
-networkActivityParallelHook.tap('venia-concept', isOnline => {
+networkActivitySyncHook.tap('venia-concept', isOnline => {
     const dispatcher = isOnline ? app.setOnline : app.setOffline;
     store.dispatch(dispatcher());
 });
 
 window.addEventListener('online', () => {
-    networkActivityParallelHook.call(true);
+    networkActivitySyncHook.call(true);
 });
 
 window.addEventListener('offline', () => {
-    networkActivityParallelHook.call(false);
+    networkActivitySyncHook.call(false);
 });
 
 registerTapableHooks({
-    networkActivityParallelHook
+    ...tapableHooks,
+    networkActivitySyncHook
 });
 
 if (module.hot) {

@@ -1,4 +1,6 @@
 import { useCallback } from 'react';
+
+import { SignoutAsyncParallelHook } from '../../tapableHooks';
 import { useUserContext } from '../../context/user';
 
 const DEFAULT_TITLE = 'My Account';
@@ -15,7 +17,8 @@ export const useMyAccount = props => {
 
     const handleSignOut = useCallback(() => {
         onSignOut();
-    }, [onSignOut]);
+        SignoutAsyncParallelHook.promise({ title, subtitle });
+    }, [onSignOut, title, subtitle]);
 
     return {
         handleSignOut,
