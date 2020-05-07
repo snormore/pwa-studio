@@ -28,6 +28,7 @@ module.exports = function({
             strictModuleExceptionHandling: true,
             chunkFilename: '[name]-[chunkhash].js'
         },
+        devtool: 'eval-source-map',
         module: {
             rules: [
                 {
@@ -72,7 +73,7 @@ module.exports = function({
                             ecma: 8
                         },
                         compress: {
-                            drop_console: true
+                            // drop_console: true
                         },
                         output: {
                             ecma: 7,

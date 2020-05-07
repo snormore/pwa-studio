@@ -144,43 +144,55 @@ const cloneRequestWithDiffURL = (request, url) =>
         : request;
 
 /**
- * Function validates if the script files mentioned in the cached
- * HTML file are cached. If not, it returns false.
- *
- * @returns Promise<Boolean>
- */
-const areAllHTMLLinksCached = async () => {
-    const cachedResponseObj = await caches.match('/');
-
-    if (cachedResponseObj) {
-        const cachedResponse = await cachedResponseObj.text();
-        const parsedCacheResponse = parse(cachedResponse, {
-            style: true
-        });
-        const scriptFiles = parsedCacheResponse
-            .querySelectorAll('script')
-            .map(generateScriptResource)
-            .filter(identity);
-
-        const cachedScriptFileResponses = await Promise.all(
-            scriptFiles.map(file => caches.match(file))
-        );
-
-        return cachedScriptFileResponses.every(file => !!file);
-    } else {
-        return Promise.resolve(false);
-    }
-};
-
-/**
  * Function will bust the HTML file cached in the storage.
  *
  * @returns Promise
  */
-const bustHTMLCache = async () => {
-    const runtimeCache = await caches.open(RUNTIME_CACHE_NAME);
+const bustRuntimeCache = async () => {
+    return await caches.delete(RUNTIME_CACHE_NAME);
+};
 
-    return runtimeCache.delete('/');
+const cacheVersionDetails = response =>
+    caches
+        .open(RUNTIME_CACHE_NAME)
+        .then(cache => cache.put('/bundle-details.json', response));
+
+const getVersionDetailsFromServer = async () => {
+    try {
+        const versionDetailsResponse = await fetch('/bundle-details.json', {
+            mode: 'no-cors'
+        });
+
+        const clonedResponse = await versionDetailsResponse.clone();
+        const responseString = await versionDetailsResponse.text();
+        const versionDetails = responseString
+            ? JSON.parse(responseString)
+            : null;
+
+        return {
+            version: versionDetails ? versionDetails.version : null,
+            response: clonedResponse
+        };
+    } catch (err) {
+        return { version: null };
+    }
+};
+
+const getVersionDetailsFromCache = async () => {
+    try {
+        const versionDetailsResponse = await caches.match(
+            '/bundle-details.json'
+        );
+        const versionDetailsString = await versionDetailsResponse.text();
+
+        const versionDetails = versionDetailsString
+            ? JSON.parse(versionDetailsString)
+            : null;
+
+        return { version: versionDetails ? versionDetails.version : null };
+    } catch (err) {
+        return { version: null };
+    }
 };
 
 /**
@@ -188,30 +200,34 @@ const bustHTMLCache = async () => {
  * and reponse manipulations on HTML routes.
  */
 export const cacheHTMLPlugin = {
-    cacheKeyWillBeUsed: ({ mode }) => {
+    cacheKeyWillBeUsed: async ({ mode }) => {
         /**
          * In read mode,
          *
-         * 1. Check if all the script links mentioned in the
-         * cached HTML are cached.
-         * 2. If after step 1, we realize all the links are not
-         * cached, delete HTML cache, and return '/'
-         * 3. If after step 1, we realize all the links are cached,
-         * we do not delete the cache, we can use the cached HTML.
+         * 1. Get version details from server
+         * 2. Get version details from cache
+         * 3. If they are different or if the version from server is
+         * invalid, bust cache. This will make SW fetch files from server.
          */
         if (mode === 'read') {
-            return areAllHTMLLinksCached().then(allLinksCached => {
-                if (!allLinksCached) {
-                    return bustHTMLCache().then(() => {
-                        return '/';
-                    });
-                } else {
-                    return Promise.resolve('/');
-                }
-            });
-        } else {
-            return Promise.resolve('/');
+            const {
+                version: versionNumber,
+                response
+            } = await getVersionDetailsFromServer();
+            const {
+                version: versionNumberFromCache
+            } = await getVersionDetailsFromCache();
+
+            if (!versionNumber || versionNumber !== versionNumberFromCache) {
+                await bustRuntimeCache();
+            }
+
+            if (response) {
+                await cacheVersionDetails(response);
+            }
         }
+
+        return '/';
     },
     requestWillFetch: async ({ request }) => {
         /**
