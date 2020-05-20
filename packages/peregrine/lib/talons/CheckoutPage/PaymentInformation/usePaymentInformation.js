@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useMutation, useQuery } from '@apollo/react-hooks';
+import { useQuery } from '@apollo/react-hooks';
 
 import { useAppContext } from '../../../context/app';
 import { useCartContext } from '../../../context/cart';
@@ -18,19 +18,16 @@ import { useCartContext } from '../../../context/cart';
  *   hideEditModal: Function,
  *   handlePaymentError: Function,
  *   handlePaymentSuccess: Function,
- *   checkoutStep: Number,
- *
+ *   checkoutStep: Number
  * }
  */
 export const usePaymentInformation = props => {
     const {
-        mutations,
         onSave,
         reviewOrderButtonClicked,
         resetReviewOrderButtonClicked,
         queries
     } = props;
-    const { setPaymentMethodMutation } = mutations;
     const { getPaymentInformation } = queries;
 
     /**
@@ -75,10 +72,7 @@ export const usePaymentInformation = props => {
     } = useQuery(getPaymentInformation, {
         variables: { cartId }
     });
-    const [
-        setPaymentMethod,
-        { loading: setPaymentMethodLoading }
-    ] = useMutation(setPaymentMethodMutation);
+
     /**
      * Effects
      */
@@ -86,11 +80,6 @@ export const usePaymentInformation = props => {
     const availablePaymentMethods = paymentInformationData
         ? paymentInformationData.cart.available_payment_methods
         : [];
-
-    const selectedPaymentMethod =
-        (paymentInformationData &&
-            paymentInformationData.cart.selected_payment_method.code) ||
-        null;
 
     // Whenever available methods change we should reset to the editing view
     // so that a user can see the newly available methods. This could occur
@@ -101,39 +90,6 @@ export const usePaymentInformation = props => {
     useEffect(() => {
         setDoneEditing(false);
     }, [availablePaymentMethods]);
-
-    // Along the lines of the above effect, since we don't have a "free method"
-    // component we check if free is available and set it as the selected method
-    // directly. What results is a potential flash of selectable payment methods
-    // and then the "free" summary.
-    useEffect(() => {
-        const setFreeIfAvailable = async () => {
-            const freeIsAvailable = !!availablePaymentMethods.find(
-                ({ code }) => code === 'free'
-            );
-            if (freeIsAvailable) {
-                if (selectedPaymentMethod !== 'free') {
-                    await setPaymentMethod({
-                        variables: {
-                            cartId,
-                            method: {
-                                code: 'free'
-                            }
-                        }
-                    });
-                }
-                // If free is already selected we can just display the summary.
-                setDoneEditing(true);
-            }
-        };
-        setFreeIfAvailable();
-    }, [
-        availablePaymentMethods,
-        cartId,
-        selectedPaymentMethod,
-        setDoneEditing,
-        setPaymentMethod
-    ]);
 
     // Handle the case where the review button gets clicked but we already
     // have data (like a refreshed checkout).
@@ -146,7 +102,7 @@ export const usePaymentInformation = props => {
     // We must wait for payment method to be set if this is the first time we
     // are hitting this component and the total is $0. If we don't wait then
     // the CC component will mount while the setPaymentMethod mutation is in flight.
-    const isLoading = paymentInformationLoading || setPaymentMethodLoading;
+    const isLoading = paymentInformationLoading;
 
     return {
         doneEditing,

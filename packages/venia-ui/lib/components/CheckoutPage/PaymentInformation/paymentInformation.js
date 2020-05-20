@@ -32,7 +32,6 @@ const PaymentInformation = props => {
 
     const {
         doneEditing,
-        currentSelectedPaymentMethod,
         isEditModalActive,
         isLoading,
         setDoneEditing,
@@ -54,11 +53,11 @@ const PaymentInformation = props => {
         <Summary onEdit={showEditModal} />
     ) : (
         <PaymentMethods
-            reviewOrderButtonClicked={reviewOrderButtonClicked}
+            shouldSubmit={reviewOrderButtonClicked}
             setDoneEditing={setDoneEditing}
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentError={handlePaymentError}
-            resetReviewOrderButtonClicked={resetReviewOrderButtonClicked}
+            resetShouldSubmit={resetReviewOrderButtonClicked}
         />
     );
 

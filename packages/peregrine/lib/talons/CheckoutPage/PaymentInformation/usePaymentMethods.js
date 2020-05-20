@@ -19,13 +19,19 @@ export const usePaymentMethods = props => {
     const availablePaymentMethods =
         (data && data.cart.available_payment_methods) || [];
 
+    const freeIsAvailable = availablePaymentMethods.find(
+        ({ code }) => code === 'free'
+    );
+
     const initialSelectedMethod =
         (availablePaymentMethods.length && availablePaymentMethods[0].code) ||
         null;
 
     return {
         availablePaymentMethods,
-        currentSelectedPaymentMethod,
+        currentSelectedPaymentMethod: freeIsAvailable
+            ? 'free'
+            : currentSelectedPaymentMethod,
         initialSelectedMethod,
         isLoading: loading
     };

@@ -26,13 +26,19 @@ export const GET_PAYMENT_INFORMATION = gql`
 `;
 /* eslint-enable graphql/template-strings */
 
-export const GET_CART_TOTAL = gql`
-    query getCartTotal($cartId: String!) {
-        cart(cart_id: $cartId) @connection(key: "Cart") {
-            id
-            prices {
-                grand_total {
-                    value
+// Sets the provided payment method object on the cart.
+export const SET_PAYMENT_METHOD = gql`
+    mutation setPaymentMethodOnCart(
+        $cartId: String!
+        $method: PaymentMethodInput!
+    ) {
+        setPaymentMethodOnCart(
+            input: { cart_id: $cartId, payment_method: { code: "free " } }
+        ) @connection(key: "setPaymentMethodOnCart") {
+            cart {
+                id
+                selected_payment_method {
+                    code
                 }
             }
         }
@@ -41,8 +47,9 @@ export const GET_CART_TOTAL = gql`
 
 export default {
     queries: {
-        getCartTotal: GET_CART_TOTAL,
-        getPaymentInformation: GET_PAYMENT_INFORMATION
+        getPaymentInformationQuery: GET_PAYMENT_INFORMATION
     },
-    mutations: {}
+    mutations: {
+        setFreePaymentMethodMutation: SET_PAYMENT_METHOD
+    }
 };

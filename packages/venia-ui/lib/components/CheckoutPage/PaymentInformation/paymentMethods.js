@@ -6,6 +6,8 @@ import { usePaymentMethods } from '@magento/peregrine/lib/talons/CheckoutPage/Pa
 
 import { mergeClasses } from '../../../classify';
 import Radio from '../../RadioGroup/radio';
+import FreePaymentMethod from './PaymentMethods/freePaymentMethod';
+
 import CreditCard from './creditCard';
 import paymentMethodOperations from './paymentMethods.gql';
 import defaultClasses from './paymentMethods.css';
@@ -19,11 +21,11 @@ const PAYMENT_METHOD_COMPONENTS_BY_CODE = {
 const PaymentMethods = props => {
     const {
         classes: propClasses,
-        reviewOrderButtonClicked,
+        shouldSubmit,
         setDoneEditing,
         onPaymentSuccess,
         onPaymentError,
-        resetReviewOrderButtonClicked
+        resetShouldSubmit
     } = props;
 
     const classes = mergeClasses(defaultClasses, propClasses);
@@ -41,6 +43,16 @@ const PaymentMethods = props => {
 
     if (isLoading) {
         return null;
+    }
+
+    // In the case of "free" don't render the radios.
+    if (currentSelectedPaymentMethod === 'free') {
+        return (
+            <FreePaymentMethod
+                onPaymentSuccess={onPaymentSuccess}
+                shouldSubmit={shouldSubmit}
+            />
+        );
     }
 
     const radios = availablePaymentMethods.map(({ code, title }) => {
@@ -66,9 +78,9 @@ const PaymentMethods = props => {
                     <Component
                         onPaymentSuccess={onPaymentSuccess}
                         onPaymentError={onPaymentError}
-                        resetShouldSubmit={resetReviewOrderButtonClicked}
+                        resetShouldSubmit={resetShouldSubmit}
                         setDoneEditing={setDoneEditing}
-                        shouldSubmit={reviewOrderButtonClicked}
+                        shouldSubmit={shouldSubmit}
                     />
                 )}
             </div>
@@ -95,9 +107,9 @@ PaymentMethods.propTypes = {
         payment_method: string,
         radio_label: string
     }),
-    reviewOrderButtonClicked: bool,
+    shouldSubmit: bool,
     selectedPaymentMethod: string,
     onPaymentSuccess: func,
     onPaymentError: func,
-    resetReviewOrderButtonClicked: func
+    resetShouldSubmit: func
 };
