@@ -55,4 +55,4 @@ USER node
 EXPOSE 8080
 ENV NODE_ENV=production
 # command to run application
-CMD [ "yarn", "stage:venia" ]
+CMD [ "npm", "run", "stage:venia" ]
